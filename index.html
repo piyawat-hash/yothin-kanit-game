@@ -1,137 +1,193 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมดอกเบี้ยทบต้น</title>
+  <meta charset="UTF-8">
+  <title>เกมคำนวณดอกเบี้ย & อนุกรม</title>
+  <style>
+    body{
+      font-family: "Sarabun", sans-serif;
+      background: linear-gradient(135deg,#4facfe,#00f2fe);
+      margin:0;
+      padding:0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+      color:#333;
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    .game-box{
+      background:white;
+      padding:25px;
+      border-radius:20px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2);
+      width:440px;
+      text-align:center;
+    }
 
-<style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:'Kanit',sans-serif;
-}
+    h1{
+      margin-top:0;
+      color:#0077ff;
+    }
 
-body{
-    min-height:100vh;
-    background: linear-gradient(135deg,#1f4037,#99f2c8);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:#fff;
-}
+    select, input, button{
+      padding:10px;
+      margin:8px 0;
+      width:100%;
+      border-radius:10px;
+      border:1px solid #ccc;
+      font-size:16px;
+    }
 
-.game-box{
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(15px);
-    padding:30px;
-    border-radius:20px;
-    width:95%;
-    max-width:500px;
-    text-align:center;
-    box-shadow:0 15px 35px rgba(0,0,0,0.3);
-}
+    button{
+      background:#0077ff;
+      color:white;
+      border:none;
+      cursor:pointer;
+      transition:0.3s;
+    }
 
-h1{
-    margin-bottom:15px;
-}
+    button:hover{
+      background:#005fcc;
+    }
 
-.question{
-    margin:20px 0;
-    font-size:18px;
-}
+    .formula{
+      background:#f2f6ff;
+      padding:12px;
+      border-radius:12px;
+      margin-top:12px;
+      font-size:15px;
+      text-align:left;
+      line-height:1.6;
+    }
 
-input{
-    padding:10px;
-    width:80%;
-    border-radius:10px;
-    border:none;
-    margin-bottom:15px;
-    text-align:center;
-    font-size:16px;
-}
+    .status{
+      margin-top:10px;
+      font-weight:bold;
+      font-size:18px;
+    }
 
-button{
-    padding:10px 20px;
-    border:none;
-    border-radius:30px;
-    background:linear-gradient(45deg,#ff512f,#dd2476);
-    color:#fff;
-    font-weight:600;
-    cursor:pointer;
-    transition:0.3s;
-}
+    .correct{ color:green; }
+    .wrong{ color:red; }
 
-button:hover{
-    transform:scale(1.1);
-}
-
-.result{
-    margin-top:15px;
-    font-weight:600;
-}
-
-.score{
-    margin-top:15px;
-    font-size:14px;
-    opacity:0.9;
-}
-</style>
+    .score{
+      margin-top:10px;
+      color:#ff5500;
+      font-weight:bold;
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="game-box">
-    <h1>💰 เกมดอกเบี้ยทบต้น</h1>
-    <div class="question" id="question"></div>
-    <input type="number" id="answer" placeholder="ใส่คำตอบ (บาท)">
-    <br>
-    <button onclick="checkAnswer()">ตรวจคำตอบ</button>
-    <div class="result" id="result"></div>
-    <div class="score" id="score">คะแนน: 0</div>
+  <h1>🎮 เกมคำนวณดอกเบี้ย</h1>
+
+  <label>เลือกโหมดเกม</label>
+  <select id="mode">
+    <option value="simple">ดอกเบี้ยคงต้น</option>
+    <option value="compound">ดอกเบี้ยทบต้น</option>
+    <option value="geo">อนุกรมเรขาคณิต</option>
+  </select>
+
+  <input type="number" id="p" placeholder="เงินต้น (P)">
+  <input type="number" id="r" placeholder="อัตรา เช่น 0.05">
+  <input type="number" id="n" placeholder="จำนวนปี / งวด (n)">
+
+  <button onclick="randomQuestion()">สุ่มโจทย์</button>
+
+  <input type="number" id="userAnswer" placeholder="ใส่คำตอบของคุณ">
+  <button onclick="checkAnswer()">ตรวจคำตอบ</button>
+
+  <div class="formula" id="formula">สูตรจะแสดงที่นี่</div>
+  <div class="status" id="status"></div>
+  <div class="score" id="score">คะแนน: 0</div>
 </div>
 
 <script>
-let P, r, t, correctAnswer;
 let score = 0;
+let correctAnswer = 0;
 
-function generateQuestion(){
-    P = Math.floor(Math.random()*9000)+1000; // เงินต้น 1000-10000
-    r = (Math.floor(Math.random()*10)+1)/100; // ดอกเบี้ย 1-10%
-    t = Math.floor(Math.random()*5)+1; // 1-5 ปี
+function calculateAnswer(){
+  let mode = document.getElementById("mode").value;
+  let P = parseFloat(document.getElementById("p").value);
+  let r = parseFloat(document.getElementById("r").value);
+  let n = parseFloat(document.getElementById("n").value);
 
-    correctAnswer = P * Math.pow((1+r), t);
-    correctAnswer = Math.round(correctAnswer);
+  let A = 0;
+  let formulaText = "";
 
-    document.getElementById("question").innerHTML =
-        `ฝากเงิน ${P} บาท ดอกเบี้ย ${r*100}% ต่อปี เป็นเวลา ${t} ปี <br>จะมีเงินทั้งหมดเท่าไร?`;
-    
-    document.getElementById("answer").value = "";
-    document.getElementById("result").innerHTML = "";
+  if(mode === "simple"){
+    A = P * (1 + n*r);
+    formulaText = `
+      <b>สูตรดอกเบี้ยคงต้น</b><br>
+      A = P(1 + nr)<br>
+      = ${P}(1 + ${n} × ${r})<br>
+      = ${A.toFixed(2)} บาท
+    `;
+  }
+
+  else if(mode === "compound"){
+    A = P * Math.pow((1+r), n);
+    formulaText = `
+      <b>สูตรดอกเบี้ยทบต้น</b><br>
+      A = P(1 + r)<sup>n</sup><br>
+      = ${P}(1 + ${r})<sup>${n}</sup><br>
+      = ${A.toFixed(2)} บาท
+    `;
+  }
+
+  else if(mode === "geo"){
+    A = P * ((Math.pow(r,n) - 1) / (r - 1));
+    formulaText = `
+      <b>สูตรอนุกรมเรขาคณิต</b><br>
+      Sₙ = a₁(rⁿ − 1)/(r − 1)<br>
+      = ${P}(${r}<sup>${n}</sup> − 1)/(${r} − 1)<br>
+      = ${A.toFixed(2)} บาท
+    `;
+  }
+
+  document.getElementById("formula").innerHTML = formulaText;
+  correctAnswer = A;
 }
 
 function checkAnswer(){
-    let userAnswer = parseInt(document.getElementById("answer").value);
+  calculateAnswer();
 
-    if(userAnswer === correctAnswer){
-        score += 10;
-        document.getElementById("result").innerHTML = "✅ ถูกต้อง!";
-    } else {
-        document.getElementById("result").innerHTML =
-            `❌ ผิด! คำตอบที่ถูกคือ ${correctAnswer.toLocaleString()} บาท`;
-    }
+  let userAns = parseFloat(document.getElementById("userAnswer").value);
+  let status = document.getElementById("status");
 
-    document.getElementById("score").innerHTML = "คะแนน: " + score;
-    setTimeout(generateQuestion, 2000);
+  if(isNaN(userAns)){
+    status.innerText = "กรุณาใส่คำตอบก่อน";
+    status.className = "status wrong";
+    return;
+  }
+
+  if(Math.abs(userAns - correctAnswer) < 0.01){
+    status.innerText = "✅ ถูกต้อง!";
+    status.className = "status correct";
+    score += 10;
+  }else{
+    status.innerText = "❌ ผิด!";
+    status.className = "status wrong";
+  }
+
+  document.getElementById("score").innerText = "คะแนน: " + score;
 }
 
-generateQuestion();
+function randomQuestion(){
+  let P = Math.floor(Math.random()*9000)+1000;
+  let r = (Math.random()*0.09+0.01).toFixed(2);
+  let n = Math.floor(Math.random()*10)+1;
+
+  document.getElementById("p").value = P;
+  document.getElementById("r").value = r;
+  document.getElementById("n").value = n;
+  document.getElementById("userAnswer").value = "";
+  document.getElementById("status").innerText = "";
+  document.getElementById("formula").innerHTML = "สูตรจะแสดงที่นี่";
+}
 </script>
 
 </body>
 </html>
-
 
