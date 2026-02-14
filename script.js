@@ -35,3 +35,44 @@ function checkAnswer() {
     }
     scoreText.innerText = score;
 }
+function checkAnswer() {
+    const userVal = parseFloat(document.getElementById('user-answer').value);
+    const scoreText = document.getElementById('score');
+    const p = parseFloat(document.getElementById('principal').value);
+    const r = parseFloat(document.getElementById('rate').value);
+    const n = parseFloat(document.getElementById('years').value);
+    const mode = document.getElementById('mode').value;
+    const solutionBox = document.getElementById('solution-box');
+    const solutionStep = document.getElementById('solution-step');
+
+    solutionBox.style.display = 'block'; // แสดงกล่องเฉลย
+
+    if (userVal === correctAnswer) {
+        score += 10;
+        solutionStep.innerHTML = `<span style="color:green">ถูกต้อง!</span><br>`;
+    } else {
+        solutionStep.innerHTML = `<span style="color:red">ยังไม่ถูกนะ ลองดูวิธีคิดด้านล่าง:</span><br>`;
+    }
+
+    // สร้างเนื้อหาวิธีทำแบบละเอียด
+    if (mode === "simple") {
+        solutionStep.innerHTML += `
+            <b>โหมดดอกเบี้ยคงต้น</b><br>
+            1. จากสูตร <span class="step-highlight">A = P(1 + nr)</span><br>
+            2. แทนค่า: A = ${p.toLocaleString()}(1 + (${n} × ${r}))<br>
+            3. คำนวณในวงเล็บ: 1 + ${(n * r).toFixed(2)} = ${(1 + n * r).toFixed(2)}<br>
+            4. ผลลัพธ์: ${p.toLocaleString()} × ${(1 + n * r).toFixed(2)} = <span class="step-highlight">${correctAnswer.toLocaleString()} บาท</span>
+        `;
+    } else {
+        solutionStep.innerHTML += `
+            <b>โหมดดอกเบี้ยทบต้น</b><br>
+            1. จากสูตร <span class="step-highlight">A = P(1 + r)ⁿ</span><br>
+            2. แทนค่า: A = ${p.toLocaleString()}(1 + ${r})^${n}<br>
+            3. คำนวณฐาน: (1 + ${r}) = ${(1 + parseFloat(r)).toFixed(2)}<br>
+            4. คำนวณเลขยกกำลัง: ${(1 + parseFloat(r)).toFixed(2)}^${n} ≈ ${(Math.pow(1 + parseFloat(r), n)).toFixed(4)}<br>
+            5. ผลลัพธ์: ${p.toLocaleString()} × ${(Math.pow(1 + parseFloat(r), n)).toFixed(4)} = <span class="step-highlight">${correctAnswer.toLocaleString()} บาท</span>
+        `;
+    }
+    
+    scoreText.innerText = score;
+}
